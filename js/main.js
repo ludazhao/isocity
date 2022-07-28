@@ -7,7 +7,10 @@ let canvas, bg, fg, cf, ntiles, tileWidth, tileHeight, map, tools, tool, activeT
 
 /* texture from https://opengameart.org/content/isometric-landscape */
 const texture = new Image()
-texture.src = "textures/01_130x66_130x230.png"
+// texture.src = "textures/01_130x66_130x230.png"
+// texture.src = "textures/tiles-new.png"
+texture.src = "textures/tiles-new-2.png"
+
 // texture.onload = _ => init()
 
 
@@ -28,19 +31,41 @@ function load() {
 	}
 }
 
-ntiles = 7
+ntiles = 0
 
 
 /** CUSTOM */
 // (x, y) coordinates from the textiles image
-HOUSES = [
-	[3, 10], [3, 11],
-	[4, 6], [4, 7], [4, 8], [4, 9], [4, 10], [4, 11],
-	[5, 0], [5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [5, 6], [5, 7], [5, 8], [5, 9], [5, 10], [5, 11]
-]
+HOUSES = {
+	// "top-bottom" facing buildings
+	'tb': [
+		// [3, 10], [3, 11],
+		[4, 6], [4, 7], [5, 0], [5, 1], [5, 2], [5, 3],  // "residential"
+		// [4, 6], [4, 7], [4, 8], [4, 9], [4, 10], // "commercial buildings"
+		// [5, 6], [5, 9], [5, 11] // "stores"
+	],
+	// 'left-right" facing buildings
+	'lr': [
+		[4, 7], [4, 11], [5, 4], [5, 5], [5, 7], [5, 8], [5, 10], // "residential"
+		// [4, 6], [4, 7], [4, 8], [4, 9], [4, 10], // "commercial buildings"
+		// [5, 6], [5, 9], [5, 11] // "stores"
+
+	]
+}
 
 PARKS = [
-	[0, 1]
+	[6, 0],
+	[6, 1],
+	[6, 2],
+	[6, 3],
+	[6, 4],
+	[6, 5],
+	[6, 6],
+	[6, 7],
+	[6, 8],
+	[6, 9],
+	[6, 10],
+	[6, 11]
 ]
 
 // different sprites depending on existence of surrounding streets
@@ -52,14 +77,15 @@ STREETS = {
 	'b': [[1, 5]],
 	'l': [[1, 4]],
 	'r': [[1, 7]],
-	'tb': [[0, 2], [0, 11], [1, 0], [1, 1]],
+	'tb': [[0, 2], [0, 7], [0, 11], [1, 0], [1, 1]],
 	'tl': [[3, 4]],
 	'tr': [[3, 3]],
 	'bl': [[3, 2]],
 	'br': [[3, 6]],
-	'lr': [[0, 3], [0, 10], [1, 2], [1, 3]],
+	'lr': [[0, 3], [0, 6], [0, 10], [1, 2], [1, 3]],
 	'tbl': [[0, 8], [0, 9]],
 	'tbr': [[0, 8], [0, 9]],
+	'tlr': [[0, 8], [0, 9]],
 	'blr': [[0, 8], [0, 9]],
 	'tblr': [[0, 8], [0, 9]]
 }
@@ -67,6 +93,7 @@ STREETS = {
 EMPTY_BLOCK = [0, 0]
 
 const getRandom = (array) => {
+	console.log(array)
 	return array[Math.floor(Math.random() * array.length)];
 }
 
@@ -94,15 +121,22 @@ const getSurroundingStreets = (p5Map, i, j) => {
 const generateMap = (p5Map) => {
 	map = []
 
-	for (let i = 0; i < 7; i++) {
+	const MAP_SIZE = p5Map.length
+
+	for (let i = 0; i < MAP_SIZE; i++) {
 		row = [];
-		for (let j = 0; j < 7; j++) {
+		for (let j = 0; j < MAP_SIZE; j++) {
+			// get surrounding streets for context (for houses, streets, etc.)
+			const surround = getSurroundingStreets(p5Map, i, j);
 			if (p5Map[i][j] === 'House') {
-				row.push(getRandom(HOUSES));
+				if (surround.includes('l') || surround.includes('r')) {
+					row.push(getRandom(HOUSES['lr']));
+				} else if (surround.includes('t') || surround.includes('b')) {
+					row.push(getRandom(HOUSES['tb']));
+				}
 			} else if (p5Map[i][j] === 'Park') {
 				row.push(getRandom(PARKS));
 			} else if (p5Map[i][j] === 'Street') {
-				const surround = getSurroundingStreets(p5Map, i, j);
 				row.push(getRandom(STREETS[surround]));
 			} else {
 				row.push(EMPTY_BLOCK);
@@ -121,10 +155,12 @@ const init = (p5Map) => {
 
 
 	canvas = $("#bg")
-	canvas.width = 910
-	canvas.height = 666
-	w = 910
-	h = 462
+	// canvas.width = 910
+	canvas.width = 2000
+	// canvas.height = 666
+	canvas.height = 1500
+	w = 2000
+	h = 1500
 	texWidth = 12
 	texHeight = 6
 	bg = canvas.getContext("2d")
@@ -132,9 +168,9 @@ const init = (p5Map) => {
 	tileHeight = 64
 	bg.translate(w / 2, tileHeight * 2)
 
-
+	console.log(p5Map);
+	ntiles = p5Map.length;
 	map = generateMap(p5Map);
-
 	drawMap()
 
 	fg = $('#fg')
@@ -142,7 +178,6 @@ const init = (p5Map) => {
 	fg.height = canvas.height
 	cf = fg.getContext('2d')
 	cf.translate(w / 2, tileHeight * 2)
-	fg.addEventListener('mousemove', viz)
 	fg.addEventListener('contextmenu', e => e.preventDefault())
 
 }

@@ -27,44 +27,6 @@ canvas {
 	overflow: auto;
 }
 
-#tools {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: center;
-	flex-wrap: wrap;
-	overflow: auto;
-	width: 580px;
-	height: 100%;
-	transition: width .8s;
-}
-@media only screen and (max-width: 1700px) {
-	#tools {
-		width: 440px;
-	}
-}
-
-@media only screen and (max-width: 1540px) {
-	#tools {
-		width: 300px;
-	}
-}
-@media only screen and (max-width: 1380px) {
-	#tools {
-		width: 160px;
-	}
-}
-
-#tools > div {
-	display: block;
-	background-image: url('../textures/01_130x66_130x230.png');
-	background-repeat: no-repeat;
-	background-size: auto;
-	width: 130px;
-	height: 230px;
-	border: 2px dashed transparent;
-	box-sizing: border-box;
-}
 
 #tools > div.selected {
 	border-color: #b05355;
@@ -78,7 +40,7 @@ canvas {
 		flex-direction: column;
 		align-items: flex-start;
 	}
-	
+
 	#tools {
 		display: flex;
 		align-items: center;
@@ -89,5 +51,5 @@ canvas {
 	#area {
 		justify-content: flex-start;
 	}
-	
+
 }
