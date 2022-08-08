@@ -5,13 +5,22 @@ const $c = _ => document.createElement(_)
 
 let canvas, bg, fg, cf, ntiles, tileWidth, tileHeight, map, tools, tool, activeTool, isPlacing
 
+/** This matches definitions in 2D JSON serialization */
+const EMPTY = '';
+const PARK = 'P';
+const HOUSE = 'H';
+const STREET = 'S';
+
+const Tiles = {
+	EMPTY: '',
+	PARK: 'P',
+	HOUSE: 'H',
+	STREET: 'S'
+}
+
 /* texture from https://opengameart.org/content/isometric-landscape */
 const texture = new Image()
-// texture.src = "textures/01_130x66_130x230.png"
-// texture.src = "textures/tiles-new.png"
 texture.src = "textures/tiles-new-2.png"
-
-// texture.onload = _ => init()
 
 
 function load() {
@@ -35,7 +44,7 @@ ntiles = 0
 
 
 /** CUSTOM */
-// (x, y) coordinates from the textiles image
+// (x, y) coordinates matches textiles from the textiles image
 HOUSES = {
 	// "top-bottom" facing buildings
 	'tb': [
@@ -100,19 +109,19 @@ const getRandom = (array) => {
 const getSurroundingStreets = (p5Map, i, j) => {
 	let res = ''
 	// top
-	if ((j - 1 >= 0 && p5Map[i][j - 1] === 'Street') || (j === 0)) {
+	if ((j - 1 >= 0 && p5Map[i][j - 1] === Tiles.STREET) || (j === 0)) {
 		res += 't';
 	}
 	// bottom
-	if ((j + 1 < ntiles && p5Map[i][j + 1] === 'Street') || (j === ntiles - 1)) {
+	if ((j + 1 < ntiles && p5Map[i][j + 1] === Tiles.STREET) || (j === ntiles - 1)) {
 		res += 'b';
 	}
 	// left
-	if ((i - 1 >= 0 && p5Map[i - 1][j] === 'Street') || (i === 0)) {
+	if ((i - 1 >= 0 && p5Map[i - 1][j] === Tiles.STREET) || (i === 0)) {
 		res += 'l';
 	}
 	// right
-	if ((i + 1 < ntiles && p5Map[i + 1][j] === 'Street') || (i === ntiles - 1)) {
+	if ((i + 1 < ntiles && p5Map[i + 1][j] === Tiles.STREET) || (i === ntiles - 1)) {
 		res += 'r';
 	}
 	return res;
@@ -128,15 +137,15 @@ const generateMap = (p5Map) => {
 		for (let j = 0; j < MAP_SIZE; j++) {
 			// get surrounding streets for context (for houses, streets, etc.)
 			const surround = getSurroundingStreets(p5Map, i, j);
-			if (p5Map[i][j] === 'House') {
+			if (p5Map[i][j] === Tiles.HOUSE) {
 				if (surround.includes('l') || surround.includes('r')) {
 					row.push(getRandom(HOUSES['lr']));
 				} else if (surround.includes('t') || surround.includes('b')) {
 					row.push(getRandom(HOUSES['tb']));
 				}
-			} else if (p5Map[i][j] === 'Park') {
+			} else if (p5Map[i][j] === Tiles.PARK) {
 				row.push(getRandom(PARKS));
-			} else if (p5Map[i][j] === 'Street') {
+			} else if (p5Map[i][j] === Tiles.STREET) {
 				row.push(getRandom(STREETS[surround]));
 			} else {
 				row.push(EMPTY_BLOCK);
@@ -155,9 +164,7 @@ const init = (p5Map) => {
 
 
 	canvas = $("#bg")
-	// canvas.width = 910
 	canvas.width = 2000
-	// canvas.height = 666
 	canvas.height = 1500
 	w = 2000
 	h = 1500
@@ -182,16 +189,6 @@ const init = (p5Map) => {
 
 }
 
-// From https://stackoverflow.com/a/36046727
-const ToBase64 = u8 => {
-	return btoa(String.fromCharCode.apply(null, u8))
-}
-
-const FromBase64 = str => {
-	return atob(str).split('').map(c => c.charCodeAt(0))
-}
-
-
 const drawMap = () => {
 	bg.clearRect(-w, -h, w * 2, h * 2)
 	for (let i = 0; i < ntiles; i++) {
@@ -201,19 +198,6 @@ const drawMap = () => {
 	}
 }
 
-const drawTile = (c, x, y, color) => {
-	c.save()
-	c.translate((y - x) * tileWidth / 2, (x + y) * tileHeight / 2)
-	c.beginPath()
-	c.moveTo(0, 0)
-	c.lineTo(tileWidth / 2, tileHeight / 2)
-	c.lineTo(0, tileHeight)
-	c.lineTo(-tileWidth / 2, tileHeight / 2)
-	c.closePath()
-	c.fillStyle = color
-	c.fill()
-	c.restore()
-}
 
 const drawImageTile = (c, x, y, i, j) => {
 	c.save()
@@ -222,21 +206,4 @@ const drawImageTile = (c, x, y, i, j) => {
 	i *= 230
 	c.drawImage(texture, j, i, 130, 230, -65, -130, 130, 230)
 	c.restore()
-}
-
-const getPosition = e => {
-	const _y = (e.offsetY - tileHeight * 2) / tileHeight,
-		_x = e.offsetX / tileWidth - ntiles / 2
-	x = Math.floor(_y - _x)
-	y = Math.floor(_x + _y)
-	return { x, y }
-}
-
-const viz = (e) => {
-	if (isPlacing)
-		click(e)
-	const pos = getPosition(e)
-	cf.clearRect(-w, -h, w * 2, h * 2)
-	if (pos.x >= 0 && pos.x < ntiles && pos.y >= 0 && pos.y < ntiles)
-		drawTile(cf, pos.x, pos.y, 'rgba(0,0,0,0.2)')
 }
