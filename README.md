@@ -1,6 +1,6 @@
 # IsoCity Draw
 
-An isometric city builder in JavaScript. Adapted from https://github.com/victorqribeiro/isocity
+An isometric city builder in JavaScript. Forked from https://github.com/victorqribeiro/isocity
 
 ## Texture Credits
 
